@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Mine_Jumper_class_library
+{
+    public class Player
+    {
+        public int Id { get; set; } // Уникальный идентификатор игрока
+        public string Name { get; set; } // Имя игрока
+        public bool IsActive { get; set; } // Активен ли игрок (в игре или вышел)
+        public TcpClient Client { get; set; } // Сетевой клиент игрока
+    }
+}

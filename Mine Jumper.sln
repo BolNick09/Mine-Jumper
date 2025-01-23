@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35431.28
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{12865A3B-2B9C-4903-8F30-FD2935D1556D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mine Jumper class library", "Mine Jumper class library\Mine Jumper class library.csproj", "{26DCB7BA-5105-4FD4-845E-1507F1BAED15}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{12865A3B-2B9C-4903-8F30-FD2935D1556D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12865A3B-2B9C-4903-8F30-FD2935D1556D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12865A3B-2B9C-4903-8F30-FD2935D1556D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12865A3B-2B9C-4903-8F30-FD2935D1556D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26DCB7BA-5105-4FD4-845E-1507F1BAED15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26DCB7BA-5105-4FD4-845E-1507F1BAED15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26DCB7BA-5105-4FD4-845E-1507F1BAED15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26DCB7BA-5105-4FD4-845E-1507F1BAED15}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8157E653-462E-49CB-BB66-87EA4113212D}
+	EndGlobalSection
+EndGlobal
