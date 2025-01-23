@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Mine_Jumper_class_library;
+using MineJumperClassLibrary;
 
 namespace Server
 {

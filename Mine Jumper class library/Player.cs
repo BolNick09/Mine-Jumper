@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mine_Jumper_class_library
+namespace MineJumperClassLibrary
 {
     public class Player
     {

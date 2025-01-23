@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using System.Text.Json.Serialization;
 
-namespace Mine_Jumper_class_library
+namespace MineJumperClassLibrary
 {
 
 
