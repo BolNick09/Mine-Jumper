@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35431.28
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{12865A3B-2B9C-4903-8F30-FD2935D1556D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csproj", "{12865A3B-2B9C-4903-8F30-FD2935D1556D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mine Jumper class library", "Mine Jumper class library\Mine Jumper class library.csproj", "{26DCB7BA-5105-4FD4-845E-1507F1BAED15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mine Jumper class library", "Mine Jumper class library\Mine Jumper class library.csproj", "{26DCB7BA-5105-4FD4-845E-1507F1BAED15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "LoginWindow\Client.csproj", "{9A8A3D33-8DA7-4B69-8816-818E521B0CF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{26DCB7BA-5105-4FD4-845E-1507F1BAED15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26DCB7BA-5105-4FD4-845E-1507F1BAED15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26DCB7BA-5105-4FD4-845E-1507F1BAED15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A8A3D33-8DA7-4B69-8816-818E521B0CF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A8A3D33-8DA7-4B69-8816-818E521B0CF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A8A3D33-8DA7-4B69-8816-818E521B0CF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A8A3D33-8DA7-4B69-8816-818E521B0CF3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
