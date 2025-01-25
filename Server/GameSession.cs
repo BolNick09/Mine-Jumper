@@ -8,19 +8,20 @@ using System.Threading.Tasks;
 
 using TcpLib;
 using MineJumperClassLibrary;
+using System.Collections.Concurrent;
 
 namespace Server
 {
     public class GameSession
     {
-        public List<Player> Players { get; } // Список игроков в сессии
+        public ConcurrentBag<Player> Players { get; } // Потокобезопасная коллекция игроков
         public GameField GameField { get; } // Игровое поле
         private int currentPlayerId = 1; // Текущий игрок (1 или 2)
 
         public GameSession(Player player1, Player player2, Size fieldSize)
         {
             // Инициализация списка игроков
-            Players = new List<Player> { player1, player2 };
+            Players = new ConcurrentBag<Player> { player1, player2 };
 
             // Инициализация игрового поля
             this.GameField = new GameField(fieldSize);
@@ -60,20 +61,27 @@ namespace Server
 
         public async Task SendInitialState()
         {
-            // Отправка начального состояния игры
-            var initialState = new GameStateMessage
+            // Получаем игроков из ConcurrentBag
+            var playersArray = Players.ToArray(); // Преобразуем ConcurrentBag в массив для удобства
+
+            // Отправка начального состояния игры первому игроку
+            var initialStatePlayer1 = new GameStateMessage
             {
-                PlayerId = Players[0].Id,
-                Field = GameField.GetFieldState(Players[0].Id),
+                PlayerId = playersArray[0].Id,
+                Field = GameField.GetFieldState(playersArray[0].Id),
                 IsGameOver = false
             };
-            await Players[0].Client.SendJson(new Message { GameState = initialState });
+            await playersArray[0].Client.SendJson(new Message { GameState = initialStatePlayer1 });
 
-            initialState.PlayerId = Players[1].Id;
-            initialState.Field = GameField.GetFieldState(Players[1].Id);
-            await Players[1].Client.SendJson(new Message { GameState = initialState });
+            // Отправка начального состояния игры второму игроку
+            var initialStatePlayer2 = new GameStateMessage
+            {
+                PlayerId = playersArray[1].Id,
+                Field = GameField.GetFieldState(playersArray[1].Id),
+                IsGameOver = false
+            };
+            await playersArray[1].Client.SendJson(new Message { GameState = initialStatePlayer2 });
         }
-
         private async Task<MoveMessage> ReceiveMove(Player player)
         {
             // Получаем ход от игрока
@@ -85,9 +93,9 @@ namespace Server
             }
 
             throw new InvalidOperationException("Получено некорректное сообщение.");
-        }
+        }     
 
-        private async Task SendGameState(Player currentPlayer, Player opponent)
+        public async Task SendGameState(Player currentPlayer, Player opponent)
         {
             var gameStateForCurrent = new GameStateMessage
             {
@@ -106,7 +114,7 @@ namespace Server
             await opponent.Client.SendJson(new Message { GameState = gameStateForOpponent });
         }
 
-        private async Task NotifyGameOver(Player loser, Player winner)
+        public async Task NotifyGameOver(Player loser, Player winner)
         {
             // Уведомляем проигравшего
             var loseMessage = new Message
@@ -129,56 +137,6 @@ namespace Server
                 }
             };
             await winner.Client.SendJson(winMessage);
-        }
-
-        public async Task ProcessMove(MoveMessage moveMessage)
-        {
-            // Находим игрока, который сделал ход
-            var player = Players.FirstOrDefault(p => p.Id == moveMessage.PlayerId);
-            if (player == null)
-            {
-                Console.WriteLine($"Игрок с ID {moveMessage.PlayerId} не найден.");
-                return;
-            }
-
-            Console.WriteLine($"Игрок {player.Name} (ID: {player.Id}) сделал ход: разминирование ({moveMessage.RevealX}, {moveMessage.RevealY}), установка мины ({moveMessage.MineX}, {moveMessage.MineY}).");
-
-            // Обработка хода
-            var isExploded = GameField.TryRevealCell(moveMessage.RevealX, moveMessage.RevealY, player.Id);
-            if (isExploded)
-            {
-                // Игрок взорвался
-                Console.WriteLine($"Игрок {player.Name} (ID: {player.Id}) взорвался.");
-                var localOpponent = Players.First(p => p.Id != player.Id);
-                await NotifyGameOver(player, localOpponent); // Уведомляем о завершении игры
-                return;
-            }
-
-            // Установка мины
-            GameField.PlaceMine(moveMessage.MineX, moveMessage.MineY, player.Id);
-
-            // Передача хода сопернику
-            var opponent = Players.First(p => p.Id != player.Id);
-
-            // Отправка обновлений состояния игры
-            await SendGameState(player, opponent);
-        }
-
-        private async Task HandleChatMessage(ChatMessage chatMessage, Player sender)
-        {
-            // Рассылаем сообщение всем игрокам
-            foreach (var player in Players)
-            {
-                var message = new Message
-                {
-                    Chat = new ChatMessage
-                    {
-                        Text = chatMessage.Text,
-                        SenderId = sender.Id
-                    }
-                };
-                await player.Client.SendJson(message);
-            }
         }
     }
 }

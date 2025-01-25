@@ -17,19 +17,18 @@ namespace Server
     public class GameServer
     {
         private readonly TcpListener listener;
-        private GameSession activeSession; 
+        private GameSession activeSession; // Текущая активная сессия
 
         public GameServer(IPAddress ipAddress, int port)
         {
-            listener = new TcpListener(ipAddress, port)
-              ?? throw new ArgumentNullException(nameof(ipAddress));
+            listener = new TcpListener(ipAddress, port);
         }
 
         public async Task Start()
         {
             listener.Start();
             Console.WriteLine("Сервер запущен. Ожидание подключений...");
-            await AcceptClients();
+            await AcceptClients(); // Асинхронный вызов
         }
 
         private async Task AcceptClients()
@@ -38,11 +37,45 @@ namespace Server
             {
                 // Асинхронно ожидаем подключения нового клиента
                 var client = await listener.AcceptTcpClientAsync();
-                Console.WriteLine("Подключен новый клиент.");
+                Console.WriteLine($"Подключен новый клиент. {client.ToString()}");
 
-                // Если игра уже начата, отправляем сообщение о том, что сервер занят
-                if (activeSession != null)
-                {                    
+                // Если активной сессии нет, создаем новую
+                if (activeSession == null)
+                {
+                    // Регистрация первого игрока
+                    var player1 = new Player
+                    {
+                        Id = 1,
+                        Name = "Player 1",
+                        IsActive = true,
+                        Client = client
+                    };
+
+                    // Ожидаем подключения второго игрока
+                    Console.WriteLine("Ожидание второго игрока...");
+                    var player2Client = await listener.AcceptTcpClientAsync();
+                    Console.WriteLine("Второй игрок подключен.");
+
+                    // Регистрация второго игрока
+                    var player2 = new Player
+                    {
+                        Id = 2,
+                        Name = "Player 2",
+                        IsActive = true,
+                        Client = player2Client
+                    };
+
+                    // Создаем новую игровую сессию
+                    activeSession = new GameSession(player1, player2, new Size(10, 10));
+                    _ = activeSession.StartGame(); // Запускаем сессию в отдельной задаче
+
+                    // Запускаем обработку сообщений для обоих игроков
+                    _ = HandleClient(player1.Client); // Без await, чтобы не блокировать поток
+                    _ = HandleClient(player2.Client); 
+                }
+                else
+                {
+                    // Если игра уже начата, отправляем сообщение о том, что сервер занят
                     Console.WriteLine("Игра уже начата. Новые подключения невозможны.");
                     var busyMessage = new Message
                     {
@@ -55,37 +88,6 @@ namespace Server
                     await client.SendJson(busyMessage);
                     client.Close();
                 }
-
-                // Регистрация первого игрока
-                var player1 = new Player
-                {
-                    Id = 1,
-                    Name = "Player 1",
-                    IsActive = true,
-                    Client = client
-                };
-
-                // Ожидаем подключения второго игрока
-                Console.WriteLine("Ожидание второго игрока...");
-                var player2Client = await listener.AcceptTcpClientAsync();
-                Console.WriteLine("Второй игрок подключен.");
-
-                // Регистрация второго игрока
-                var player2 = new Player
-                {
-                    Id = 2,
-                    Name = "Player 2",
-                    IsActive = true,
-                    Client = player2Client
-                };
-
-                // Создаем новую игровую сессию
-                activeSession = new GameSession(player1, player2, new Size(10, 10));
-                await activeSession.StartGame(); // Запускаем сессию в отдельной задаче
-
-               _ = HandleClient(player1.Client);// _= Возвращаемый Task не нужен
-               _ = HandleClient(player2.Client);
-
             }
         }
 
@@ -122,8 +124,7 @@ namespace Server
             }
             else if (message.Move != null)
             {
-                // Передаем ход в GameSession для обработки
-                await activeSession.ProcessMove(message.Move);
+                await ProcessMove(message.Move);
             }
             else if (message.Leave != null)
             {
@@ -131,7 +132,7 @@ namespace Server
             }
             else if (message.Chat != null)
             {
-                var sender = activeSession?.Players.FirstOrDefault(p => p.Client == client);
+                var sender = activeSession.Players.FirstOrDefault(p => p.Client == client);
                 if (sender != null)
                 {
                     await HandleChatMessage(message.Chat, sender);
@@ -168,7 +169,7 @@ namespace Server
                 }
             };
             await client.SendJson(joinResponse);
-        }       
+        }
 
         private async Task HandleLeaveMessage(LeaveMessage leaveMessage, TcpClient client)
         {
@@ -183,7 +184,7 @@ namespace Server
             Console.WriteLine($"Игрок {leavingPlayer.Name} (ID: {leavingPlayer.Id}) покинул игру.");
 
             // Удаляем игрока из сессии
-            activeSession.Players.Remove(leavingPlayer);
+            activeSession.Players.TryTake(out leavingPlayer);
 
             // Если остался только один игрок, завершаем сессию
             if (activeSession.Players.Count < 2)
@@ -222,6 +223,38 @@ namespace Server
                 };
                 await opponent.Client.SendJson(leaveNotification);
             }
+        }
+
+        private async Task ProcessMove(MoveMessage moveMessage)
+        {
+            // Находим игрока, который сделал ход
+            var player = activeSession.Players.FirstOrDefault(p => p.Id == moveMessage.PlayerId);
+            if (player == null)
+            {
+                Console.WriteLine($"Игрок с ID {moveMessage.PlayerId} не найден.");
+                return;
+            }
+
+            Console.WriteLine($"Игрок {player.Name} (ID: {player.Id}) сделал ход: разминирование ({moveMessage.RevealX}, {moveMessage.RevealY}), установка мины ({moveMessage.MineX}, {moveMessage.MineY}).");
+
+            // Обработка хода
+            var isExploded = activeSession.GameField.TryRevealCell(moveMessage.RevealX, moveMessage.RevealY, player.Id);
+            if (isExploded)
+            {
+                // Игрок взорвался
+                Console.WriteLine($"Игрок {player.Name} (ID: {player.Id}) взорвался.");
+                var opponentPlayer = activeSession.Players.First(p => p.Id != player.Id);
+                await activeSession.NotifyGameOver(player, opponentPlayer); // Уведомляем о завершении игры
+                return;
+            }
+            // Установка мины
+            activeSession.GameField.PlaceMine(moveMessage.MineX, moveMessage.MineY, player.Id);
+
+            // Передача хода сопернику
+            var nextPlayer = activeSession.Players.First(p => p.Id != player.Id);
+
+            // Отправка обновлений состояния игры
+            await activeSession.SendGameState(player, nextPlayer);
         }
 
         private async Task HandleChatMessage(ChatMessage chatMessage, Player sender)

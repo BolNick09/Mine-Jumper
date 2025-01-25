@@ -7,9 +7,8 @@ namespace Server
         static void Main(string[] args)
         {
             Console.WriteLine("Запуск сервера...");
-            var server = new GameServer(IPAddress.Any, 6666);
+            var server = new GameServer(IPAddress.Any, 2024);
             server.Start();
-            Console.WriteLine("Сервер запущен. Ожидание подключений...");
 
             Console.ReadLine(); // Чтобы сервер не завершал работу сразу
         }
