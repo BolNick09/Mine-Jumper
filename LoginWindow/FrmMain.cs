@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -64,7 +65,7 @@ namespace Client
                         Size = new Size(20, 20), // Размер кнопки
                         Location = new Point(10 + x * 20, 10 + y * 20), // Позиция кнопки
                         Tag = new Point(x, y), // Сохраняем координаты кнопки в Tag
-                        //Image =  // Иконка по умолчанию (закрытая клетка)
+                        BackColor = SystemColors.Control // Стандартный цвет кнопки
                     };
                     button.Click += Cell_Click; // Обработчик клика по кнопке
                     gbPlayField.Controls.Add(button); // Добавляем кнопку в GroupBox
@@ -82,7 +83,35 @@ namespace Client
         private void HandleGameStateUpdate(GameStateMessage gameState)
         {
             // Обновляем интерфейс в соответствии с состоянием игры
-            // Например, обновляем клетки на поле
+            for (int x = 0; x < gameState.Field.GetLength(0); x++)
+            {
+                for (int y = 0; y < gameState.Field.GetLength(1); y++)
+                {
+                    var cellState = gameState.Field[x, y];
+                    var button = gbPlayField.Controls
+                        .OfType<Button>()
+                        .FirstOrDefault(b => ((Point)b.Tag).X == x && ((Point)b.Tag).Y == y);
+
+                    if (button != null)
+                    {
+                        if (cellState.IsRevealed)
+                        {
+                            // Если клетка открыта, устанавливаем зелёный цвет
+                            button.BackColor = Color.Green;
+                        }
+                        else if (cellState.IsPlayerMine)
+                        {
+                            // Если это мина игрока, устанавливаем красный цвет
+                            button.BackColor = Color.Red;
+                        }
+                        else
+                        {
+                            // Если клетка закрыта, возвращаем стандартный цвет
+                            button.BackColor = SystemColors.Control;
+                        }
+                    }
+                }
+            }
         }
 
         private void HandleGameOver(int winnerId)
