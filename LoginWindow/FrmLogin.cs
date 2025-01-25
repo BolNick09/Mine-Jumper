@@ -17,27 +17,23 @@ namespace LoginWindow
 
         private async void btnConnect_Click(object sender, EventArgs e)
         {
-            // Получаем имя игрока и IP-адрес сервера
             string playerName = tbName.Text.Trim();
             string serverIp = tbIp.Text.Trim();
 
-            // Проверяем, что поля заполнены
             if (string.IsNullOrEmpty(playerName) || string.IsNullOrEmpty(serverIp))
             {
                 MessageBox.Show("Пожалуйста, введите имя и IP-адрес сервера.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Пытаемся подключиться к серверу
             try
             {
-                // Создаем клиент и подключаемся к серверу
-                var gameClient = new GameClient(serverIp, 2024); // Порт 2024 по умолчанию
+                var gameClient = new GameClient(serverIp, 2024);
 
-                // Подписываемся на событие ответа от сервера
+                // Подписываемся на событие OnJoinResponse
                 gameClient.OnJoinResponse += (joinResponse) =>
                 {
-                    // Если подключение успешно, открываем основную форму игры
+                    // Открываем основную форму игры
                     var mainForm = new FrmMain(gameClient, playerName, joinResponse.FieldSize);
                     mainForm.Show();
 
@@ -45,11 +41,10 @@ namespace LoginWindow
                     this.Hide();
                 };
 
-                await gameClient.ConnectAsync(playerName);
+                await gameClient.Connect(playerName);
             }
             catch (Exception ex)
             {
-                // Если подключение не удалось, показываем сообщение об ошибке
                 MessageBox.Show($"Не удалось подключиться к серверу: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

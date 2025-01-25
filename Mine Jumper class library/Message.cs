@@ -70,6 +70,9 @@ namespace MineJumperClassLibrary
         [JsonPropertyName("playerId")]
         public int PlayerId { get; set; }
 
+        [JsonPropertyName("currentPlayerId")]
+        public int CurrentPlayerId { get; set; } // ID игрока, чей сейчас ход
+
         [JsonPropertyName("field")]
         public CellState[,] Field { get; set; } // Состояние игрового поля для конкретного игрока
 

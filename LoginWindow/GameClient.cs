@@ -15,13 +15,11 @@ namespace Client
 {
     public class GameClient
     {
-        private TcpClient client; // Клиент для подключения к серверу
         private string serverIp; // IP-адрес сервера
         private int port; // Порт сервера
 
-        public int PlayerId { get; private set; } // ID игрока, полученный от сервера
-        public string PlayerName { get; private set; } // Имя игрока
-        public Size FieldSize { get; private set; } // Размер игрового поля
+        public Player Player { get; private set; } // Информация о текущем игроке
+        public Player CurrentPlayer { get; set; } // Игрок, чей сейчас ход
 
         // События для уведомления о получении данных от сервера
         public event Action<JoinMessage> OnJoinResponse; // Ответ от сервера на подключение
@@ -32,34 +30,39 @@ namespace Client
         {
             this.serverIp = serverIp;
             this.port = port;
-            client = new TcpClient();
         }
 
         // Подключение к серверу и регистрация игрока
-        public async Task ConnectAsync(string playerName)
+        public async Task Connect(string playerName)
         {
             try
             {
-                // Подключаемся к серверу
+                var client = new TcpClient();
                 await client.ConnectAsync(serverIp, port);
                 Console.WriteLine("Подключение к серверу успешно.");
 
+                Player = new Player
+                {
+                    Client = client,
+                    Name = playerName,
+                    IsActive = true
+                };
+
                 // Отправляем сообщение о подключении
                 var joinMessage = new JoinMessage { PlayerName = playerName };
-                await client.SendJson(new Message { Join = joinMessage });
+                await Player.Client.SendJson(new Message { Join = joinMessage });
 
-                // Получаем ответ от сервера с подтверждением подключения
-                var response = await client.ReceiveJson<Message>();
+                // Получаем ответ от сервера
+                var response = await Player.Client.ReceiveJson<Message>();
                 if (response?.Join != null)
                 {
-                    PlayerId = response.Join.PlayerId;
-                    PlayerName = response.Join.PlayerName;
-                    FieldSize = response.Join.FieldSize;
+                    Player.Id = response.Join.PlayerId;
+                    Console.WriteLine($"Игрок {Player.Name} (ID: {Player.Id}) успешно зарегистрирован.");
 
-                    // Уведомляем о получении ответа от сервера
+                    // Вызываем событие OnJoinResponse
                     OnJoinResponse?.Invoke(response.Join);
 
-                    // Запускаем прослушивание сообщений от сервера
+                    // Запускаем прослушивание сообщений
                     _ = StartListening();
                 }
                 else
@@ -79,13 +82,13 @@ namespace Client
         {
             var moveMessage = new MoveMessage
             {
-                PlayerId = PlayerId,
+                PlayerId = Player.Id,
                 RevealX = revealX,
                 RevealY = revealY,
                 MineX = mineX,
                 MineY = mineY
             };
-            await client.SendJson(new Message { Move = moveMessage });
+            await Player.Client.SendJson(new Message { Move = moveMessage });
         }
 
         // Отправка сообщения в чат
@@ -94,9 +97,9 @@ namespace Client
             var chatMessage = new ChatMessage
             {
                 Text = text,
-                SenderId = PlayerId
+                SenderId = Player.Id
             };
-            await client.SendJson(new Message { Chat = chatMessage });
+            await Player.Client.SendJson(new Message { Chat = chatMessage });
         }
 
         // Прослушивание сообщений от сервера
@@ -104,10 +107,9 @@ namespace Client
         {
             try
             {
-                while (client.Connected)
+                while (Player.Client.Connected)
                 {
-                    // Получаем сообщение от сервера
-                    var message = await client.ReceiveJson<Message>();
+                    var message = await Player.Client.ReceiveJson<Message>();
 
                     if (message?.GameState != null)
                     {
@@ -127,7 +129,7 @@ namespace Client
             }
             finally
             {
-                client.Close();
+                Player.Client.Close();
             }
         }
     }

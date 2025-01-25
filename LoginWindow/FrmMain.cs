@@ -72,52 +72,90 @@ namespace Client
                 }
             }
         }
+
+        private bool isFirstClick = true; // Флаг для первого клика
+        private Point firstClickCoordinates; // Координаты первой клетки
         private async void Cell_Click(object sender, EventArgs e)
         {
+            // Проверяем, наш ли ход
+            if (gameClient.Player.Id != gameClient.CurrentPlayer.Id)
+            {
+                MessageBox.Show("Сейчас не ваш ход.");
+                return;
+            }
+
             var button = (Button)sender;
             var cellCoordinates = (Point)button.Tag;
 
-            // Отправляем ход на сервер
-            await gameClient.SendMove(cellCoordinates.X, cellCoordinates.Y, cellCoordinates.X, cellCoordinates.Y);
+            if (isFirstClick)
+            {
+                // Первый клик — открытие клетки
+                firstClickCoordinates = cellCoordinates;
+                isFirstClick = false;
+
+                // Временно помечаем клетку как открытую (для визуальной обратной связи)
+                button.BackColor = Color.Green;
+            }
+            else
+            {
+                // Второй клик — установка мины
+                isFirstClick = true;
+
+                // Отправляем ход на сервер
+                await gameClient.SendMove(firstClickCoordinates.X, firstClickCoordinates.Y, cellCoordinates.X, cellCoordinates.Y);
+
+                // Помечаем клетку с миной (для визуальной обратной связи)
+                button.BackColor = Color.Red;
+            }
         }
         private void HandleGameStateUpdate(GameStateMessage gameState)
-        {
-            // Обновляем интерфейс в соответствии с состоянием игры
-            for (int x = 0; x < gameState.Field.GetLength(0); x++)
-            {
-                for (int y = 0; y < gameState.Field.GetLength(1); y++)
-                {
-                    var cellState = gameState.Field[x, y];
-                    var button = gbPlayField.Controls
-                        .OfType<Button>()
-                        .FirstOrDefault(b => ((Point)b.Tag).X == x && ((Point)b.Tag).Y == y);
+{
+    // Блокируем кнопки, если ход не текущего игрока
+    UpdateButtonsState(gameClient.Player.IsMyTurn);
 
-                    if (button != null)
-                    {
-                        if (cellState.IsRevealed)
-                        {
-                            // Если клетка открыта, устанавливаем зелёный цвет
-                            button.BackColor = Color.Green;
-                        }
-                        else if (cellState.IsPlayerMine)
-                        {
-                            // Если это мина игрока, устанавливаем красный цвет
-                            button.BackColor = Color.Red;
-                        }
-                        else
-                        {
-                            // Если клетка закрыта, возвращаем стандартный цвет
-                            button.BackColor = SystemColors.Control;
-                        }
-                    }
+    // Обновляем интерфейс в соответствии с состоянием игры
+    for (int x = 0; x < gameState.Field.GetLength(0); x++)
+    {
+        for (int y = 0; y < gameState.Field.GetLength(1); y++)
+        {
+            var cellState = gameState.Field[x, y];
+            var button = gbPlayField.Controls
+                .OfType<Button>()
+                .FirstOrDefault(b => ((Point)b.Tag).X == x && ((Point)b.Tag).Y == y);
+
+            if (button != null)
+            {
+                if (cellState.IsRevealed)
+                {
+                    // Если клетка открыта, устанавливаем зелёный цвет
+                    button.BackColor = Color.Green;
                 }
+                else if (cellState.IsPlayerMine)
+                {
+                    // Если это мина игрока, устанавливаем красный цвет
+                    button.BackColor = Color.Red;
+                }
+                else
+                {
+                    // Если клетка закрыта, возвращаем стандартный цвет
+                    button.BackColor = SystemColors.Control;
+                }
+            }
+        }
+    }
+}
+        private void UpdateButtonsState(bool isEnabled)
+        {
+            foreach (var button in gbPlayField.Controls.OfType<Button>())
+            {
+                button.Enabled = isEnabled;
             }
         }
 
         private void HandleGameOver(int winnerId)
         {
             // Показываем сообщение о завершении игры
-            MessageBox.Show(winnerId == gameClient.PlayerId ? "Вы победили!" : "Вы проиграли.");
+            MessageBox.Show(winnerId == gameClient.CurrentPlayer.Id ? "Вы победили!" : "Вы проиграли.");
         }
 
         private void FrmMain_Load(object sender, EventArgs e)

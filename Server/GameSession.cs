@@ -16,7 +16,7 @@ namespace Server
     {
         public ConcurrentBag<Player> Players { get; } // Потокобезопасная коллекция игроков
         public GameField GameField { get; } // Игровое поле
-        private int currentPlayerId = 1; // Текущий игрок (1 или 2)
+        private int currentPlayerId; // Текущий игрок (1 или 2)
 
         public GameSession(Size fieldSize)
         {
@@ -98,6 +98,10 @@ namespace Server
 
         public async Task SendGameState(Player currentPlayer, Player opponent)
         {
+            // Устанавливаем IsMyTurn для текущего игрока
+            currentPlayer.IsMyTurn = true;
+            opponent.IsMyTurn = false;
+
             var gameStateForCurrent = new GameStateMessage
             {
                 PlayerId = currentPlayer.Id,
@@ -117,6 +121,10 @@ namespace Server
 
         public async Task NotifyGameOver(Player loser, Player winner)
         {
+            // Сбрасываем IsMyTurn для обоих игроков
+            loser.IsMyTurn = false;
+            winner.IsMyTurn = false;
+
             // Уведомляем проигравшего
             var loseMessage = new Message
             {

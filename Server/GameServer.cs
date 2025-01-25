@@ -97,17 +97,13 @@ namespace Server
 
         private async Task HandleJoinMessage(JoinMessage joinMessage, TcpClient client)
         {
-            // Если активной сессии нет, создаем новую
             if (activeSession == null)
             {
-                activeSession = new GameSession(fieldSize); // Используем переданный размер поля
-                Console.WriteLine("Создана новая игровая сессия.");
+                activeSession = new GameSession(fieldSize);
             }
 
-            // Генерация уникального ID для игрока
             int playerId = activeSession.Players.Count + 1;
 
-            // Создание объекта игрока
             var player = new Player
             {
                 Id = playerId,
@@ -116,28 +112,23 @@ namespace Server
                 Client = client
             };
 
-            // Добавление игрока в сессию
             activeSession.Players.Add(player);
 
-            Console.WriteLine($"Игрок {player.Name} (ID: {player.Id}) подключился.");
-
-            // Отправка подтверждения подключения с размером поля
+            // Отправляем ответ клиенту
             var joinResponse = new Message
             {
                 Join = new JoinMessage
                 {
                     PlayerId = player.Id,
                     PlayerName = player.Name,
-                    FieldSize = fieldSize // Передаем размер поля
+                    FieldSize = fieldSize
                 }
             };
             await client.SendJson(joinResponse);
 
-            // Если подключились два игрока, начинаем игру
             if (activeSession.Players.Count == 2)
             {
-                Console.WriteLine("Два игрока подключены. Начинаем игру.");
-                _ = activeSession.StartGame(); // Запускаем игру в отдельной задаче
+                _ = activeSession.StartGame();
             }
         }
 
