@@ -18,10 +18,10 @@ namespace Server
         public GameField GameField { get; } // Игровое поле
         private int currentPlayerId = 1; // Текущий игрок (1 или 2)
 
-        public GameSession(Player player1, Player player2, Size fieldSize)
+        public GameSession(Size fieldSize)
         {
             // Инициализация списка игроков
-            Players = new ConcurrentBag<Player> { player1, player2 };
+            Players = new ConcurrentBag<Player>();
 
             // Инициализация игрового поля
             this.GameField = new GameField(fieldSize);
@@ -82,6 +82,7 @@ namespace Server
             };
             await playersArray[1].Client.SendJson(new Message { GameState = initialStatePlayer2 });
         }
+
         private async Task<MoveMessage> ReceiveMove(Player player)
         {
             // Получаем ход от игрока
@@ -93,7 +94,7 @@ namespace Server
             }
 
             throw new InvalidOperationException("Получено некорректное сообщение.");
-        }     
+        }
 
         public async Task SendGameState(Player currentPlayer, Player opponent)
         {

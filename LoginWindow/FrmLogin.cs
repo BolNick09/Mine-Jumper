@@ -32,15 +32,20 @@ namespace LoginWindow
             try
             {
                 // Создаем клиент и подключаемся к серверу
-                var gameClient = new GameClient(serverIp, 5000); // Порт 5000 по умолчанию
+                var gameClient = new GameClient(serverIp, 2024); // Порт 2024 по умолчанию
+
+                // Подписываемся на событие ответа от сервера
+                gameClient.OnJoinResponse += (joinResponse) =>
+                {
+                    // Если подключение успешно, открываем основную форму игры
+                    var mainForm = new FrmMain(gameClient, playerName, joinResponse.FieldSize);
+                    mainForm.Show();
+
+                    // Закрываем форму логина
+                    this.Hide();
+                };
+
                 await gameClient.ConnectAsync(playerName);
-
-                // Если подключение успешно, открываем основную форму игры
-                var mainForm = new FrmMain(gameClient, playerName);
-                mainForm.Show();
-
-                // Закрываем форму логина
-                this.Hide();
             }
             catch (Exception ex)
             {

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using System.Text.Json.Serialization;
+using System.Drawing;
 
 namespace MineJumperClassLibrary
 {
@@ -35,8 +36,11 @@ namespace MineJumperClassLibrary
 
         [JsonPropertyName("playerName")]
         public string PlayerName { get; set; }
+
+        [JsonPropertyName("fieldSize")]
+        public Size FieldSize { get; set; }
     }
-    
+
     public class MoveMessage
     {
         [JsonPropertyName("playerId")]
