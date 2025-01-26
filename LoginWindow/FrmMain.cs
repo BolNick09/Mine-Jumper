@@ -160,7 +160,7 @@ namespace Client
         private void HandleGameOver(int winnerId)
         {
             // Показываем сообщение о завершении игры
-            MessageBox.Show(winnerId == gameClient.CurrentTurnPlayerId ? "Вы победили!" : "Вы проиграли.");
+            MessageBox.Show(winnerId == gameClient.Player.Id ? "Вы победили!" : "Вы проиграли.");
             this.Close();
         }
 

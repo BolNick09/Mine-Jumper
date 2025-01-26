@@ -136,11 +136,6 @@ namespace Server
         {
             // Находим игрока, который сделал ход
             Player? activePlayer = activeSession.Players.FirstOrDefault(player => player.Id == moveMessage.PlayerId);
-            if (activePlayer == null)
-            {
-                Console.WriteLine($"Игрок с ID {moveMessage.PlayerId} не найден.");
-                return;
-            }
 
             Console.WriteLine($"Игрок {activePlayer.Name} (ID: {activePlayer.Id}) сделал ход: разминирование ({moveMessage.RevealX}, {moveMessage.RevealY}), установка мины ({moveMessage.MineX}, {moveMessage.MineY}).");
 

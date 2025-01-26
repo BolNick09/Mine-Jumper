@@ -119,8 +119,12 @@ namespace Client
                 while (Player.Client.Connected)
                 {
                     Message? message = await Player.Client.ReceiveJson<Message>();
-
-                    if (message?.GameState != null)
+                    if (message?.GameState?.IsGameOver == true)
+                    {
+                        // Уведомляем о завершении игры
+                        OnGameOver?.Invoke(message.GameState.WinnerId ?? 0);
+                    }
+                    else if (message?.GameState != null)
                     {
                         // Обновляем CurrentPlayerId
                         CurrentTurnPlayerId = message.GameState.CurrentPlayerId;
@@ -135,11 +139,7 @@ namespace Client
                         // Вызываем событие для обновления чата
                         OnChatMessageReceived?.Invoke(chatMessage);
                     }
-                    else if (message?.GameState?.IsGameOver == true)
-                    {
-                        // Уведомляем о завершении игры
-                        OnGameOver?.Invoke(message.GameState.WinnerId ?? 0);
-                    }
+                    
                 }
             }
             catch (Exception ex)

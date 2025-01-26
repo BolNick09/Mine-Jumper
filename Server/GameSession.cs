@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 using TcpLib;
 using MineJumperClassLibrary;
-using System.Collections.Concurrent;
 
 namespace Server
 {
@@ -16,7 +15,6 @@ namespace Server
     {
         public List<Player> Players { get; } // НЕпотокобезопасная коллекция игроков, исправление багов
         public GameField GameField { get; } // Игровое поле
-        private Player currentPlayer; // Текущий игрок
 
         public GameSession(Size fieldSize)
         {
@@ -27,35 +25,7 @@ namespace Server
         public async Task StartGame()
         {
             Console.WriteLine("Начало новой игровой сессии.");
-            await SendInitialState();
-
-            //// Устанавливаем первого игрока как текущего
-            //currentPlayer = Players.First();
-
-            //while (true)
-            //{
-            //    Player opponent = Players.First(player => player.Id != currentPlayer.Id);
-
-            //    // Получаем ход от текущего игрока
-            //    MoveMessage move = await ReceiveMove(currentPlayer);
-
-            //    // Обработка хода
-            //    bool isExploded = GameField.TryRevealCell(move.RevealX, move.RevealY, currentPlayer.Id);
-            //    if (isExploded)
-            //    {
-            //        await NotifyGameOver(currentPlayer, opponent);
-            //        break;
-            //    }
-
-            //    // Установка мины
-            //    GameField.PlaceMine(move.MineX, move.MineY, currentPlayer.Id);
-
-            //    // Передача хода сопернику
-            //    currentPlayer = opponent;
-
-            //    // Отправка обновлений состояния игры
-            //    await SendGameState(currentPlayer, opponent);
-            //}
+            await SendInitialState();            
         }
 
         public async Task SendInitialState()
@@ -91,20 +61,6 @@ namespace Server
             };
             await playersArray[1].Client.SendJson(new Message { GameState = initialStatePlayer2 });
         }
-
-        private async Task<MoveMessage> ReceiveMove(Player player)
-        {
-            // Получаем ход от игрока
-            Message message = await player.Client.ReceiveJson<Message>();
-
-            if (message?.Move != null)
-            {
-                return message.Move;
-            }
-
-            throw new InvalidOperationException("Получено некорректное сообщение.");
-        }
-
         public async Task SendGameState(Player currentPlayer, Player opponent)
         {
             GameStateMessage gameStateForCurrent = new GameStateMessage
@@ -129,10 +85,6 @@ namespace Server
 
         public async Task NotifyGameOver(Player loser, Player winner)
         {
-            // Сбрасываем IsMyTurn для обоих игроков
-            loser.IsMyTurn = false;
-            winner.IsMyTurn = false;
-
             // Уведомляем проигравшего
             Message loseMessage = new Message
             {
