@@ -102,7 +102,7 @@ namespace Client
                 button.BackColor = Color.Green;
             }
             else
-            {                
+            {
                 // Второй клик — установка мины
                 isFirstClick = true;
 
@@ -167,6 +167,11 @@ namespace Client
         private void FrmMain_Load(object sender, EventArgs e)
         {
 
-        }        
+        }
+
+        private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            this.Dispose();
+        }
     }
 }

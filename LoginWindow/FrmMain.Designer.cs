@@ -83,6 +83,7 @@
             Controls.Add(tbChat);
             Name = "FrmMain";
             Text = "Mine Jumper";
+            FormClosing += FrmMain_FormClosing;
             Load += FrmMain_Load;
             ResumeLayout(false);
             PerformLayout();

@@ -135,40 +135,46 @@ namespace Server
         private async Task HandleMove(MoveMessage moveMessage)
         {
             // Находим игрока, который сделал ход
-            Player? player = activeSession.Players.FirstOrDefault(player => player.Id == moveMessage.PlayerId);
-            if (player == null)
+            Player? activePlayer = activeSession.Players.FirstOrDefault(player => player.Id == moveMessage.PlayerId);
+            if (activePlayer == null)
             {
                 Console.WriteLine($"Игрок с ID {moveMessage.PlayerId} не найден.");
                 return;
             }
 
-            Console.WriteLine($"Игрок {player.Name} (ID: {player.Id}) сделал ход: разминирование ({moveMessage.RevealX}, {moveMessage.RevealY}), установка мины ({moveMessage.MineX}, {moveMessage.MineY}).");
+            Console.WriteLine($"Игрок {activePlayer.Name} (ID: {activePlayer.Id}) сделал ход: разминирование ({moveMessage.RevealX}, {moveMessage.RevealY}), установка мины ({moveMessage.MineX}, {moveMessage.MineY}).");
 
             // Обработка хода
-            bool isExploded = activeSession.GameField.TryRevealCell(moveMessage.RevealX, moveMessage.RevealY, player.Id);
+            bool isExploded = activeSession.GameField.TryRevealCell(moveMessage.RevealX, moveMessage.RevealY, activePlayer.Id);
             if (isExploded)
             {
                 // Игрок взорвался
-                Console.WriteLine($"Игрок {player.Name} (ID: {player.Id}) взорвался.");
-                Player opponentPlayer = activeSession.Players.First(p => p.Id != player.Id);
-                await activeSession.NotifyGameOver(player, opponentPlayer); // Уведомляем о завершении игры
+                Console.WriteLine($"Игрок {activePlayer.Name} (ID: {activePlayer.Id}) взорвался.");
+                Player opponentPlayer = activeSession.Players.First(p => p.Id != activePlayer.Id);
+                await activeSession.NotifyGameOver(activePlayer, opponentPlayer); // Уведомляем о завершении игры
                 return;
             }
 
             // Установка мины
-            activeSession.GameField.PlaceMine(moveMessage.MineX, moveMessage.MineY, player.Id);
+            activeSession.GameField.PlaceMine(moveMessage.MineX, moveMessage.MineY, activePlayer.Id);
+            try
+            {
+                // Передача хода сопернику
+                Player nextPlayer = activeSession.Players.First(player => player.Id != activePlayer.Id);
 
-            // Передача хода сопернику
-            Player nextPlayer = activeSession.Players.First(player => player.Id != player.Id);
-
-            // Отправка обновлений состояния игры
-            await activeSession.SendGameState(player, nextPlayer);
+                // Отправка обновлений состояния игры
+                await activeSession.SendGameState(activePlayer, nextPlayer);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при обработке хода игрока: {ex.Message}");
+            }
         }
 
         private async Task HandleLeaveMessage(LeaveMessage leaveMessage, TcpClient client)
         {
             // Находим игрока, который покидает игру
-            Player? leavingPlayer = activeSession.Players.FirstOrDefault(p => p.Id == leaveMessage.PlayerId);
+            Player? leavingPlayer = activeSession.Players.FirstOrDefault(player => player.Id == leaveMessage.PlayerId);
             if (leavingPlayer == null)
             {
                 Console.WriteLine($"Игрок с ID {leaveMessage.PlayerId} не найден.");

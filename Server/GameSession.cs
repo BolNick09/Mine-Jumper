@@ -107,16 +107,12 @@ namespace Server
 
         public async Task SendGameState(Player currentPlayer, Player opponent)
         {
-            // Устанавливаем IsMyTurn для текущего игрока
-            currentPlayer.IsMyTurn = true;
-            opponent.IsMyTurn = false;
-
             GameStateMessage gameStateForCurrent = new GameStateMessage
             {
                 PlayerId = currentPlayer.Id,
                 StrField = CellState.SerializeField(GameField.GetFieldState(currentPlayer.Id)),
                 IsGameOver = false,
-                CurrentPlayerId = currentPlayer.Id // Указываем, чей сейчас ход
+                CurrentPlayerId = opponent.Id // Указываем, чей сейчас ход
             };
             await currentPlayer.Client.SendJson(new Message { GameState = gameStateForCurrent });
 
@@ -125,7 +121,7 @@ namespace Server
                 PlayerId = opponent.Id,
                 StrField = CellState.SerializeField(GameField.GetFieldState(opponent.Id)),
                 IsGameOver = false,
-                CurrentPlayerId = currentPlayer.Id // Указываем, чей сейчас ход
+                CurrentPlayerId = opponent.Id 
             };
             await opponent.Client.SendJson(new Message { GameState = gameStateForOpponent });
         }
