@@ -30,11 +30,17 @@ namespace Client
             // Подписываемся на события
             gameClient.OnGameStateUpdated += HandleGameStateUpdate;
             gameClient.OnGameOver += HandleGameOver;
-        }        
 
-        private async void BtnSendChat_Click(object sender, EventArgs e)
+            gameClient.OnChatMessageReceived += (chatMessage) =>
+            {
+                // Обновляем текстовое поле чата
+                tbChat.AppendText($"{chatMessage}{Environment.NewLine}");
+            };
+        }
+
+        private async void btnSendChat_Click(object sender, EventArgs e)
         {
-            string message = tbEnterChat.Text.Trim();
+            string message = $"{gameClient.Player.Name}: {tbEnterChat.Text}";
             if (!string.IsNullOrEmpty(message))
             {
                 await gameClient.SendChatMessage(message);
@@ -44,9 +50,6 @@ namespace Client
 
         private void InitializeGameField(Size fieldSize)
         {
-            // Очищаем GroupBox перед созданием новых кнопок
-            gbPlayField.Controls.Clear();
-
             // Устанавливаем размеры GroupBox
             int groupBoxWidth = fieldSize.Width * 20 + 20; // Ширина: количество кнопок * 20 + отступы
             int groupBoxHeight = fieldSize.Height * 20 + 20; // Высота: количество кнопок * 20 + отступы
@@ -54,6 +57,12 @@ namespace Client
 
             // Устанавливаем размеры формы
             this.Size = new Size(groupBoxWidth + 300, groupBoxHeight + 65);
+            this.Text += $" Player: {playerName}";
+            tbChat.Left = gbPlayField.Left + groupBoxWidth + 30;
+            tbEnterChat.Left = gbPlayField.Left + groupBoxWidth + 30;
+
+            tbChat.Width = this.Width - gbPlayField.Width - 60;
+            tbEnterChat.Width = this.Width - gbPlayField.Width - 60;
 
             // Создаем кнопки и добавляем их в GroupBox
             for (int x = 0; x < fieldSize.Width; x++)
@@ -78,14 +87,16 @@ namespace Client
         private async void Cell_Click(object sender, EventArgs e)
         {
             // Проверяем, наш ли ход
-            if (gameClient.Player.Id != gameClient.CurrentPlayer.Id)
+            if (gameClient.Player.Id != gameClient.CurrentTurnPlayerId)
             {
                 MessageBox.Show("Сейчас не ваш ход.");
                 return;
             }
-
             var button = (Button)sender;
             var cellCoordinates = (Point)button.Tag;
+
+            if (button.BackColor != SystemColors.Control)
+                return;
 
             if (isFirstClick)
             {
@@ -97,7 +108,7 @@ namespace Client
                 button.BackColor = Color.Green;
             }
             else
-            {
+            {                
                 // Второй клик — установка мины
                 isFirstClick = true;
 
@@ -109,41 +120,40 @@ namespace Client
             }
         }
         private void HandleGameStateUpdate(GameStateMessage gameState)
-{
-    // Блокируем кнопки, если ход не текущего игрока
-    UpdateButtonsState(gameClient.Player.IsMyTurn);
-
-    // Обновляем интерфейс в соответствии с состоянием игры
-    for (int x = 0; x < gameState.Field.GetLength(0); x++)
-    {
-        for (int y = 0; y < gameState.Field.GetLength(1); y++)
         {
-            var cellState = gameState.Field[x, y];
-            var button = gbPlayField.Controls
-                .OfType<Button>()
-                .FirstOrDefault(b => ((Point)b.Tag).X == x && ((Point)b.Tag).Y == y);
-
-            if (button != null)
+            //Установка очередности хода 
+            gameClient.Player.IsMyTurn = gameClient.Player.Id == gameState.CurrentPlayerId;
+            // Блокируем кнопки, если ход не текущего игрока
+            UpdateButtonsState(gameClient.Player.Id == gameState.CurrentPlayerId);
+            gameClient.FieldState = CellState.DeserializeField(gameState.StrField);
+            // Обновляем интерфейс в соответствии с состоянием игры
+            for (int x = 0; x < gameClient.FieldState.GetLength(0); x++)
             {
-                if (cellState.IsRevealed)
+                for (int y = 0; y < gameClient.FieldState.GetLength(1); y++)
                 {
-                    // Если клетка открыта, устанавливаем зелёный цвет
-                    button.BackColor = Color.Green;
-                }
-                else if (cellState.IsPlayerMine)
-                {
-                    // Если это мина игрока, устанавливаем красный цвет
-                    button.BackColor = Color.Red;
-                }
-                else
-                {
-                    // Если клетка закрыта, возвращаем стандартный цвет
-                    button.BackColor = SystemColors.Control;
+                    var cellState = gameClient.FieldState[x, y];
+                    var button = gbPlayField.Controls
+                        .OfType<Button>()
+                        .FirstOrDefault(b => ((Point)b.Tag).X == x && ((Point)b.Tag).Y == y);
+
+                    if (button != null)
+                    {
+                        if (cellState.IsRevealed)
+                        {
+                            button.BackColor = Color.Green;
+                        }
+                        else if (cellState.IsPlayerMine)
+                        {
+                            button.BackColor = Color.Red;
+                        }
+                        else
+                        {
+                            button.BackColor = SystemColors.Control;
+                        }
+                    }
                 }
             }
         }
-    }
-}
         private void UpdateButtonsState(bool isEnabled)
         {
             foreach (var button in gbPlayField.Controls.OfType<Button>())
@@ -155,22 +165,13 @@ namespace Client
         private void HandleGameOver(int winnerId)
         {
             // Показываем сообщение о завершении игры
-            MessageBox.Show(winnerId == gameClient.CurrentPlayer.Id ? "Вы победили!" : "Вы проиграли.");
+            MessageBox.Show(winnerId == gameClient.CurrentTurnPlayerId ? "Вы победили!" : "Вы проиграли.");
+            this.Close();
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
         {
 
-        }
-
-        private async void btnSendChat_Click(object sender, EventArgs e)
-        {
-            string message = tbEnterChat.Text.Trim();
-            if (!string.IsNullOrEmpty(message))
-            {
-                await gameClient.SendChatMessage(message);
-                tbEnterChat.Clear();
-            }
-        }
+        }        
     }
 }

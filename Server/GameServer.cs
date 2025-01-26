@@ -30,14 +30,14 @@ namespace Server
         {
             listener.Start();
             Console.WriteLine("Сервер запущен. Ожидание подключений...");
-            await AcceptClients(); // Асинхронный вызов
+            await AcceptClients();
         }
 
         private async Task AcceptClients()
         {
             while (true)
             {
-                // Асинхронно ожидаем подключения нового клиента
+                // Ожидание подключения нового клиента
                 var client = await listener.AcceptTcpClientAsync();
                 Console.WriteLine("Подключен новый клиент.");
 
@@ -90,17 +90,16 @@ namespace Server
                 var sender = activeSession?.Players.FirstOrDefault(p => p.Client == client);
                 if (sender != null)
                 {
-                    await HandleChatMessage(message.Chat, sender);
+                    await HandleChatMessage(message.Chat);
                 }
             }
         }
 
         private async Task HandleJoinMessage(JoinMessage joinMessage, TcpClient client)
         {
-            if (activeSession == null)
-            {
+            if (activeSession == null)            
                 activeSession = new GameSession(fieldSize);
-            }
+            
 
             int playerId = activeSession.Players.Count + 1;
 
@@ -212,14 +211,13 @@ namespace Server
                     Chat = new ChatMessage
                     {
                         Text = $"{leavingPlayer.Name} покинул игру.",
-                        SenderId = null // Сообщение от сервера
                     }
                 };
                 await opponent.Client.SendJson(leaveNotification);
             }
         }
 
-        private async Task HandleChatMessage(ChatMessage chatMessage, Player sender)
+        private async Task HandleChatMessage(ChatMessage chatMessage)
         {
             // Рассылаем сообщение всем игрокам
             foreach (var player in activeSession.Players)
@@ -229,7 +227,6 @@ namespace Server
                     Chat = new ChatMessage
                     {
                         Text = chatMessage.Text,
-                        SenderId = sender.Id
                     }
                 };
                 await player.Client.SendJson(message);

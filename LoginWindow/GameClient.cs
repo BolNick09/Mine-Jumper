@@ -19,11 +19,14 @@ namespace Client
         private int port; // Порт сервера
 
         public Player Player { get; private set; } // Информация о текущем игроке
-        public Player CurrentPlayer { get; set; } // Игрок, чей сейчас ход
+        public int CurrentTurnPlayerId { get; set; } // ID текущего игрока
+
+        public CellState[,] FieldState { get; set; }
 
         // События для уведомления о получении данных от сервера
         public event Action<JoinMessage> OnJoinResponse; // Ответ от сервера на подключение
         public event Action<GameStateMessage> OnGameStateUpdated; // Обновление состояния игры
+        public event Action<string> OnChatMessageReceived; // Имя игрока, текст сообщения
         public event Action<int> OnGameOver; // Завершение игры
 
         public GameClient(string serverIp, int port)
@@ -39,7 +42,7 @@ namespace Client
             {
                 var client = new TcpClient();
                 await client.ConnectAsync(serverIp, port);
-                Console.WriteLine("Подключение к серверу успешно.");
+                MessageBox.Show("Подключение к серверу успешно.");
 
                 Player = new Player
                 {
@@ -49,15 +52,15 @@ namespace Client
                 };
 
                 // Отправляем сообщение о подключении
-                var joinMessage = new JoinMessage { PlayerName = playerName };
+                JoinMessage joinMessage = new JoinMessage { PlayerName = playerName };
                 await Player.Client.SendJson(new Message { Join = joinMessage });
 
                 // Получаем ответ от сервера
-                var response = await Player.Client.ReceiveJson<Message>();
+                Message response = await Player.Client.ReceiveJson<Message>();
                 if (response?.Join != null)
                 {
                     Player.Id = response.Join.PlayerId;
-                    Console.WriteLine($"Игрок {Player.Name} (ID: {Player.Id}) успешно зарегистрирован.");
+                    MessageBox.Show($"Игрок {Player.Name} (ID: {Player.Id}) успешно зарегистрирован.");
 
                     // Вызываем событие OnJoinResponse
                     OnJoinResponse?.Invoke(response.Join);
@@ -72,7 +75,7 @@ namespace Client
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при подключении к серверу: {ex.Message}");
+                MessageBox.Show($"Ошибка при подключении к серверу: {ex.Message}");
                 throw;
             }
         }
@@ -96,8 +99,7 @@ namespace Client
         {
             var chatMessage = new ChatMessage
             {
-                Text = text,
-                SenderId = Player.Id
+                Text = text
             };
             await Player.Client.SendJson(new Message { Chat = chatMessage });
         }
@@ -113,8 +115,18 @@ namespace Client
 
                     if (message?.GameState != null)
                     {
+                        // Обновляем CurrentPlayerId
+                        CurrentTurnPlayerId = message.GameState.CurrentPlayerId;
+
                         // Уведомляем о новом состоянии игры
                         OnGameStateUpdated?.Invoke(message.GameState);
+                    }
+                    else if (message?.Chat != null)
+                    {
+                        string chatMessage = message.Chat.Text;
+
+                        // Вызываем событие для обновления чата
+                        OnChatMessageReceived?.Invoke(chatMessage);
                     }
                     else if (message?.GameState?.IsGameOver == true)
                     {

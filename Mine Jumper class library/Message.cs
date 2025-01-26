@@ -74,7 +74,7 @@ namespace MineJumperClassLibrary
         public int CurrentPlayerId { get; set; } // ID игрока, чей сейчас ход
 
         [JsonPropertyName("field")]
-        public CellState[,] Field { get; set; } // Состояние игрового поля для конкретного игрока
+        public String StrField { get; set; } // Состояние игрового поля для конкретного игрока
 
         [JsonPropertyName("isGameOver")]
         public bool IsGameOver { get; set; }
@@ -87,8 +87,5 @@ namespace MineJumperClassLibrary
     {
         [JsonPropertyName("text")]
         public string Text { get; set; } // Текст сообщения
-
-        [JsonPropertyName("senderId")]
-        public int? SenderId { get; set; } // ID отправителя (опционально)
     }
 }

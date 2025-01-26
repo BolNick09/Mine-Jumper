@@ -37,24 +37,25 @@
             // tbChat
             // 
             tbChat.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            tbChat.Location = new Point(428, 12);
+            tbChat.Location = new Point(418, 12);
             tbChat.Multiline = true;
             tbChat.Name = "tbChat";
-            tbChat.Size = new Size(244, 178);
+            tbChat.ReadOnly = true;
+            tbChat.Size = new Size(254, 178);
             tbChat.TabIndex = 0;
             // 
             // tbEnterChat
             // 
             tbEnterChat.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            tbEnterChat.Location = new Point(428, 197);
+            tbEnterChat.Location = new Point(418, 197);
             tbEnterChat.Name = "tbEnterChat";
-            tbEnterChat.Size = new Size(244, 23);
+            tbEnterChat.Size = new Size(254, 23);
             tbEnterChat.TabIndex = 1;
             // 
             // btnSendChat
             // 
             btnSendChat.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnSendChat.Location = new Point(528, 226);
+            btnSendChat.Location = new Point(528, 224);
             btnSendChat.Name = "btnSendChat";
             btnSendChat.Size = new Size(144, 23);
             btnSendChat.TabIndex = 2;

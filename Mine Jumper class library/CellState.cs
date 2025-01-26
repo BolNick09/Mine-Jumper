@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -17,5 +18,43 @@ namespace MineJumperClassLibrary
 
         [JsonPropertyName("isPlayerMine")]
         public bool IsPlayerMine { get; set; } // Есть ли мина игрока
+
+        // Метод для преобразования 2-мерного массива CellState в строку (JSON)
+        public static string SerializeField(CellState[,] field)
+        {
+            var list = new List<List<CellState>>();
+
+            for (int i = 0; i < field.GetLength(0); i++)
+            {
+                var row = new List<CellState>();
+                for (int j = 0; j < field.GetLength(1); j++)
+                {
+                    row.Add(field[i, j]);
+                }
+                list.Add(row);
+            }
+
+            return JsonSerializer.Serialize(list);
+        }
+
+        // Метод для преобразования строки (JSON) обратно в 2-мерный массив CellState
+        public static CellState[,] DeserializeField(string json)
+        {
+            var list = JsonSerializer.Deserialize<List<List<CellState>>>(json);
+            int rows = list.Count;
+            int cols = list[0].Count;
+
+            var field = new CellState[rows, cols];
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    field[i, j] = list[i][j];
+                }
+            }
+
+            return field;
+        }
     }
 }
