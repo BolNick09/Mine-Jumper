@@ -10,7 +10,7 @@ namespace Server
             int width = GetUserInput("Введите ширину игрового поля (например, 10):");
             int height = GetUserInput("Введите высоту игрового поля (например, 10):");
             Console.WriteLine("Запуск сервера...");
-            var server = new GameServer(IPAddress.Any, 2024, new Size(width, height));
+            GameServer server = new GameServer(IPAddress.Any, 2024, new Size(width, height));
             await server.Start();
         }
         private static int GetUserInput(string prompt)

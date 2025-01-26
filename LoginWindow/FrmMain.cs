@@ -69,7 +69,7 @@ namespace Client
             {
                 for (int y = 0; y < fieldSize.Height; y++)
                 {
-                    var button = new Button
+                    Button button = new Button
                     {
                         Size = new Size(20, 20), // Размер кнопки
                         Location = new Point(10 + x * 20, 10 + y * 20), // Позиция кнопки
@@ -86,14 +86,8 @@ namespace Client
         private Point firstClickCoordinates; // Координаты первой клетки
         private async void Cell_Click(object sender, EventArgs e)
         {
-            // Проверяем, наш ли ход
-            if (gameClient.Player.Id != gameClient.CurrentTurnPlayerId)
-            {
-                MessageBox.Show("Сейчас не ваш ход.");
-                return;
-            }
-            var button = (Button)sender;
-            var cellCoordinates = (Point)button.Tag;
+            Button button = (Button)sender;
+            Point cellCoordinates = (Point)button.Tag;
 
             if (button.BackColor != SystemColors.Control)
                 return;
@@ -125,14 +119,15 @@ namespace Client
             gameClient.Player.IsMyTurn = gameClient.Player.Id == gameState.CurrentPlayerId;
             // Блокируем кнопки, если ход не текущего игрока
             UpdateButtonsState(gameClient.Player.Id == gameState.CurrentPlayerId);
-            gameClient.FieldState = CellState.DeserializeField(gameState.StrField);
+
             // Обновляем интерфейс в соответствии с состоянием игры
+            gameClient.FieldState = CellState.DeserializeField(gameState.StrField);
             for (int x = 0; x < gameClient.FieldState.GetLength(0); x++)
             {
                 for (int y = 0; y < gameClient.FieldState.GetLength(1); y++)
                 {
-                    var cellState = gameClient.FieldState[x, y];
-                    var button = gbPlayField.Controls
+                    CellState cellState = gameClient.FieldState[x, y];
+                    Button? button = gbPlayField.Controls
                         .OfType<Button>()
                         .FirstOrDefault(b => ((Point)b.Tag).X == x && ((Point)b.Tag).Y == y);
 
@@ -156,7 +151,7 @@ namespace Client
         }
         private void UpdateButtonsState(bool isEnabled)
         {
-            foreach (var button in gbPlayField.Controls.OfType<Button>())
+            foreach (Button button in gbPlayField.Controls.OfType<Button>())
             {
                 button.Enabled = isEnabled;
             }

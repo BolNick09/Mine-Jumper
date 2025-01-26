@@ -36,7 +36,7 @@ namespace Server
             revealed[x, y] = true;
 
             // Проверка, есть ли мина соперника в этой клетке
-            var opponentMines = playerId == 1 ? player2Mines : player1Mines;
+            bool[,] opponentMines = playerId == 1 ? player2Mines : player1Mines;
             return opponentMines[x, y]; // true, если игрок взорвался
         }
 
@@ -46,16 +46,16 @@ namespace Server
             if (x < 0 || x >= Size.Width || y < 0 || y >= Size.Height)
                 throw new ArgumentOutOfRangeException("Некорректные координаты клетки.");
 
-            var playerMines = playerId == 1 ? player1Mines : player2Mines;
+            bool[,] playerMines = playerId == 1 ? player1Mines : player2Mines;
             playerMines[x, y] = true;
         }
 
         // Получение состояния поля для конкретного игрока
         public CellState[,] GetFieldState(int playerId)
         {
-            var fieldState = new CellState[Size.Width, Size.Height];
-            var opponentMines = playerId == 1 ? player2Mines : player1Mines;
-            var playerMines = playerId == 1 ? player1Mines : player2Mines;
+            CellState[,] fieldState = new CellState[Size.Width, Size.Height];
+            bool[,] opponentMines = playerId == 1 ? player2Mines : player1Mines;
+            bool[,] playerMines = playerId == 1 ? player1Mines : player2Mines;
 
             for (int x = 0; x < Size.Width; x++)
             {

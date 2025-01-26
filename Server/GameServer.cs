@@ -38,7 +38,7 @@ namespace Server
             while (true)
             {
                 // Ожидание подключения нового клиента
-                var client = await listener.AcceptTcpClientAsync();
+                TcpClient client = await listener.AcceptTcpClientAsync();
                 Console.WriteLine("Подключен новый клиент.");
 
                 // Запускаем обработку сообщений для нового клиента
@@ -53,7 +53,7 @@ namespace Server
                 while (client.Connected)
                 {
                     // Получаем сообщение от клиента
-                    var message = await client.ReceiveJson<Message>();
+                    Message message = await client.ReceiveJson<Message>();
 
                     if (message != null)
                     {
@@ -73,13 +73,14 @@ namespace Server
 
         private async Task ProcessMessage(Message message, TcpClient client)
         {
+            
             if (message.Join != null)
             {
                 await HandleJoinMessage(message.Join, client);
             }
             else if (message.Move != null)
             {
-                await ProcessMove(message.Move); // Обработка хода
+                await HandleMove(message.Move); // Обработка хода
             }
             else if (message.Leave != null)
             {
@@ -87,7 +88,7 @@ namespace Server
             }
             else if (message.Chat != null)
             {
-                var sender = activeSession?.Players.FirstOrDefault(p => p.Client == client);
+                Player? sender = activeSession?.Players.FirstOrDefault(p => p.Client == client);
                 if (sender != null)
                 {
                     await HandleChatMessage(message.Chat);
@@ -103,7 +104,7 @@ namespace Server
 
             int playerId = activeSession.Players.Count + 1;
 
-            var player = new Player
+            Player player = new Player
             {
                 Id = playerId,
                 Name = joinMessage.PlayerName,
@@ -114,7 +115,7 @@ namespace Server
             activeSession.Players.Add(player);
 
             // Отправляем ответ клиенту
-            var joinResponse = new Message
+            Message joinResponse = new Message
             {
                 Join = new JoinMessage
                 {
@@ -131,10 +132,10 @@ namespace Server
             }
         }
 
-        private async Task ProcessMove(MoveMessage moveMessage)
+        private async Task HandleMove(MoveMessage moveMessage)
         {
             // Находим игрока, который сделал ход
-            var player = activeSession.Players.FirstOrDefault(player => player.Id == moveMessage.PlayerId);
+            Player? player = activeSession.Players.FirstOrDefault(player => player.Id == moveMessage.PlayerId);
             if (player == null)
             {
                 Console.WriteLine($"Игрок с ID {moveMessage.PlayerId} не найден.");
@@ -144,12 +145,12 @@ namespace Server
             Console.WriteLine($"Игрок {player.Name} (ID: {player.Id}) сделал ход: разминирование ({moveMessage.RevealX}, {moveMessage.RevealY}), установка мины ({moveMessage.MineX}, {moveMessage.MineY}).");
 
             // Обработка хода
-            var isExploded = activeSession.GameField.TryRevealCell(moveMessage.RevealX, moveMessage.RevealY, player.Id);
+            bool isExploded = activeSession.GameField.TryRevealCell(moveMessage.RevealX, moveMessage.RevealY, player.Id);
             if (isExploded)
             {
                 // Игрок взорвался
                 Console.WriteLine($"Игрок {player.Name} (ID: {player.Id}) взорвался.");
-                var opponentPlayer = activeSession.Players.First(p => p.Id != player.Id);
+                Player opponentPlayer = activeSession.Players.First(p => p.Id != player.Id);
                 await activeSession.NotifyGameOver(player, opponentPlayer); // Уведомляем о завершении игры
                 return;
             }
@@ -158,7 +159,7 @@ namespace Server
             activeSession.GameField.PlaceMine(moveMessage.MineX, moveMessage.MineY, player.Id);
 
             // Передача хода сопернику
-            var nextPlayer = activeSession.Players.First(player => player.Id != player.Id);
+            Player nextPlayer = activeSession.Players.First(player => player.Id != player.Id);
 
             // Отправка обновлений состояния игры
             await activeSession.SendGameState(player, nextPlayer);
@@ -167,7 +168,7 @@ namespace Server
         private async Task HandleLeaveMessage(LeaveMessage leaveMessage, TcpClient client)
         {
             // Находим игрока, который покидает игру
-            var leavingPlayer = activeSession.Players.FirstOrDefault(p => p.Id == leaveMessage.PlayerId);
+            Player? leavingPlayer = activeSession.Players.FirstOrDefault(p => p.Id == leaveMessage.PlayerId);
             if (leavingPlayer == null)
             {
                 Console.WriteLine($"Игрок с ID {leaveMessage.PlayerId} не найден.");
@@ -177,7 +178,7 @@ namespace Server
             Console.WriteLine($"Игрок {leavingPlayer.Name} (ID: {leavingPlayer.Id}) покинул игру.");
 
             // Удаляем игрока из сессии
-            activeSession.Players.TryTake(out leavingPlayer);
+            activeSession.Players.Remove(leavingPlayer);
 
             // Если остался только один игрок, завершаем сессию
             if (activeSession.Players.Count < 2)
@@ -185,10 +186,10 @@ namespace Server
                 Console.WriteLine("Игровая сессия завершена из-за выхода игрока.");
 
                 // Уведомляем оставшегося игрока о завершении игры
-                var remainingPlayer = activeSession.Players.FirstOrDefault();
+                Player? remainingPlayer = activeSession.Players.FirstOrDefault();
                 if (remainingPlayer != null)
                 {
-                    var gameOverMessage = new Message
+                    Message gameOverMessage = new Message
                     {
                         GameState = new GameStateMessage
                         {
@@ -205,8 +206,8 @@ namespace Server
             else
             {
                 // Уведомляем второго игрока о выходе соперника
-                var opponent = activeSession.Players.First(p => p.Id != leaveMessage.PlayerId);
-                var leaveNotification = new Message
+                Player opponent = activeSession.Players.First(p => p.Id != leaveMessage.PlayerId);
+                Message leaveNotification = new Message
                 {
                     Chat = new ChatMessage
                     {
@@ -220,9 +221,9 @@ namespace Server
         private async Task HandleChatMessage(ChatMessage chatMessage)
         {
             // Рассылаем сообщение всем игрокам
-            foreach (var player in activeSession.Players)
+            foreach (Player player in activeSession.Players)
             {
-                var message = new Message
+                Message message = new Message
                 {
                     Chat = new ChatMessage
                     {

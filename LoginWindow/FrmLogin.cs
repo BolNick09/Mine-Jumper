@@ -28,13 +28,13 @@ namespace LoginWindow
 
             try
             {
-                var gameClient = new GameClient(serverIp, 2024);
+                GameClient gameClient = new GameClient(serverIp, 2024);
 
                 // Подписываемся на событие OnJoinResponse
                 gameClient.OnJoinResponse += (joinResponse) =>
                 {
                     // Открываем основную форму игры
-                    var mainForm = new FrmMain(gameClient, playerName, joinResponse.FieldSize);
+                    FrmMain mainForm = new FrmMain(gameClient, playerName, joinResponse.FieldSize);
                     mainForm.Show();
 
                     // Закрываем форму логина

@@ -22,11 +22,11 @@ namespace MineJumperClassLibrary
         // Метод для преобразования 2-мерного массива CellState в строку (JSON)
         public static string SerializeField(CellState[,] field)
         {
-            var list = new List<List<CellState>>();
+            List<List<CellState>> list = new List<List<CellState>>();
 
             for (int i = 0; i < field.GetLength(0); i++)
             {
-                var row = new List<CellState>();
+                List<CellState> row = new List<CellState>();
                 for (int j = 0; j < field.GetLength(1); j++)
                 {
                     row.Add(field[i, j]);
@@ -40,11 +40,11 @@ namespace MineJumperClassLibrary
         // Метод для преобразования строки (JSON) обратно в 2-мерный массив CellState
         public static CellState[,] DeserializeField(string json)
         {
-            var list = JsonSerializer.Deserialize<List<List<CellState>>>(json);
+            List<List<CellState>>? list = JsonSerializer.Deserialize<List<List<CellState>>>(json);
             int rows = list.Count;
             int cols = list[0].Count;
 
-            var field = new CellState[rows, cols];
+            CellState[,] field = new CellState[rows, cols];
 
             for (int i = 0; i < rows; i++)
             {

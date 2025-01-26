@@ -40,7 +40,7 @@ namespace Client
         {
             try
             {
-                var client = new TcpClient();
+                TcpClient client = new TcpClient();
                 await client.ConnectAsync(serverIp, port);
                 MessageBox.Show("Подключение к серверу успешно.");
 
@@ -83,7 +83,7 @@ namespace Client
         // Отправка хода на сервер
         public async Task SendMove(int revealX, int revealY, int mineX, int mineY)
         {
-            var moveMessage = new MoveMessage
+            MoveMessage moveMessage = new MoveMessage
             {
                 PlayerId = Player.Id,
                 RevealX = revealX,
@@ -91,13 +91,20 @@ namespace Client
                 MineX = mineX,
                 MineY = mineY
             };
-            await Player.Client.SendJson(new Message { Move = moveMessage });
+            try
+            {
+                await Player.Client.SendJson(new Message { Move = moveMessage });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show (ex.ToString() );
+            }
         }
 
         // Отправка сообщения в чат
         public async Task SendChatMessage(string text)
         {
-            var chatMessage = new ChatMessage
+            ChatMessage chatMessage = new ChatMessage
             {
                 Text = text
             };
@@ -111,7 +118,7 @@ namespace Client
             {
                 while (Player.Client.Connected)
                 {
-                    var message = await Player.Client.ReceiveJson<Message>();
+                    Message? message = await Player.Client.ReceiveJson<Message>();
 
                     if (message?.GameState != null)
                     {
