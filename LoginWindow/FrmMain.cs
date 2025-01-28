@@ -75,6 +75,7 @@ namespace Client
                         Location = new Point(10 + x * 20, 10 + y * 20), // Позиция кнопки
                         Tag = new Point(x, y), // Сохраняем координаты кнопки в Tag
                         BackColor = SystemColors.Control // Стандартный цвет кнопки
+                        //Image = Properties.Resources.imgNone
                     };
                     button.Click += Cell_Click; // Обработчик клика по кнопке
                     gbPlayField.Controls.Add(button); // Добавляем кнопку в GroupBox
@@ -100,6 +101,7 @@ namespace Client
 
                 // Временно помечаем клетку как открытую (для визуальной обратной связи)
                 button.BackColor = Color.Green;
+                //button.Image = Properties.Resources.imgFlag;
             }
             else
             {
@@ -111,6 +113,7 @@ namespace Client
 
                 // Помечаем клетку с миной (для визуальной обратной связи)
                 button.BackColor = Color.Red;
+                //button.Image = Properties.Resources.imgMine;
             }
         }
         private void HandleGameStateUpdate(GameStateMessage gameState)
