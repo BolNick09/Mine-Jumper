@@ -28,30 +28,17 @@ namespace Server
             await SendInitialState();            
         }
 
-        public async Task SendInitialState()
+        public async Task SendInitialState()    // Отправка начального состояния игры
         {
-            // Получаем игроков из ConcurrentBag
-            Player[] playersArray = Players.ToArray(); // Преобразуем ConcurrentBag в массив для удобства
-
-            // Отправка начального состояния игры первому игроку
+            Player[] playersArray = Players.ToArray(); 
+             
             GameStateMessage initialStatePlayer1 = new GameStateMessage
             {
                 PlayerId = playersArray[0].Id,
                 StrField = CellState.SerializeField(GameField.GetFieldState(playersArray[0].Id)),
                 IsGameOver = false,
                 CurrentPlayerId = playersArray[0].Id
-            };
-            try
-            {
-                await playersArray[0].Client.SendJson(new Message { GameState = initialStatePlayer1 });
-            }
-            catch (Exception ex)
-            {
-                string str = ex.Message;
-            }
-
-
-            // Отправка начального состояния игры второму игроку
+            }; 
             GameStateMessage initialStatePlayer2 = new GameStateMessage
             {
                 PlayerId = playersArray[1].Id,
@@ -59,8 +46,10 @@ namespace Server
                 IsGameOver = false,
                 CurrentPlayerId = playersArray[0].Id
             };
+            await playersArray[0].Client.SendJson(new Message { GameState = initialStatePlayer1 });
             await playersArray[1].Client.SendJson(new Message { GameState = initialStatePlayer2 });
         }
+        //Отправить состояние игры 
         public async Task SendGameState(Player currentPlayer, Player opponent)
         {
             GameStateMessage gameStateForCurrent = new GameStateMessage
@@ -69,8 +58,7 @@ namespace Server
                 StrField = CellState.SerializeField(GameField.GetFieldState(currentPlayer.Id)),
                 IsGameOver = false,
                 CurrentPlayerId = opponent.Id // Указываем, чей сейчас ход
-            };
-            await currentPlayer.Client.SendJson(new Message { GameState = gameStateForCurrent });
+            };           
 
             GameStateMessage gameStateForOpponent = new GameStateMessage
             {
@@ -79,10 +67,9 @@ namespace Server
                 IsGameOver = false,
                 CurrentPlayerId = opponent.Id 
             };
+            await currentPlayer.Client.SendJson(new Message { GameState = gameStateForCurrent });
             await opponent.Client.SendJson(new Message { GameState = gameStateForOpponent });
         }
-
-
         public async Task NotifyGameOver(Player loser, Player winner)
         {
             // Уведомляем проигравшего
@@ -93,9 +80,7 @@ namespace Server
                     IsGameOver = true,
                     WinnerId = winner.Id
                 }
-            };
-            await loser.Client.SendJson(loseMessage);
-
+            };     
             // Уведомляем победителя
             Message winMessage = new Message
             {
@@ -105,6 +90,7 @@ namespace Server
                     WinnerId = winner.Id
                 }
             };
+            await loser.Client.SendJson(loseMessage);
             await winner.Client.SendJson(winMessage);
         }
     }

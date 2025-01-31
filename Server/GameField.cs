@@ -12,8 +12,8 @@ namespace Server
     public class GameField
     {
         public Size Size { get; }
-        private readonly bool[,] player1Mines; // Мины игрока 1
-        private readonly bool[,] player2Mines; // Мины игрока 2
+        private readonly bool[,] player1Mines; 
+        private readonly bool[,] player2Mines; 
         private readonly bool[,] revealed;     // Разминированные клетки
 
         public GameField(Size size)
@@ -69,7 +69,6 @@ namespace Server
                     };
                 }
             }
-
             return fieldState;
         }
     }

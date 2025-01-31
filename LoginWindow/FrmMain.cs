@@ -26,16 +26,13 @@ namespace Client
             this.playerName = playerName;
             this.frmLogin = frmLogin;
 
-            // Инициализируем игровое поле
             InitializeGameField(fieldSize);
 
-            // Подписываемся на события
             gameClient.OnGameStateUpdated += HandleGameStateUpdate;
             gameClient.OnGameOver += HandleGameOver;
 
             gameClient.OnChatMessageReceived += (chatMessage) =>
             {
-                // Обновляем текстовое поле чата
                 tbChat.AppendText($"{chatMessage}{Environment.NewLine}");
             };
         }
@@ -52,12 +49,12 @@ namespace Client
 
         private void InitializeGameField(Size fieldSize)
         {
-            // Устанавливаем размеры GroupBox
-            int groupBoxWidth = fieldSize.Width * 20 + 20; // Ширина: количество кнопок * 20 + отступы
-            int groupBoxHeight = fieldSize.Height * 20 + 20; // Высота: количество кнопок * 20 + отступы
+            //размеры gb
+            int groupBoxWidth = fieldSize.Width * 20 + 20;  //+ отступы
+            int groupBoxHeight = fieldSize.Height * 20 + 20;//+ отступы 
             gbPlayField.Size = new Size(groupBoxWidth, groupBoxHeight);
 
-            // Устанавливаем размеры формы
+            //размеры всей формы
             this.Size = new Size(groupBoxWidth + 300, groupBoxHeight + 65);
             this.Text += $" Player: {playerName}";
             tbChat.Left = gbPlayField.Left + groupBoxWidth + 30;
@@ -66,27 +63,27 @@ namespace Client
             tbChat.Width = this.Width - gbPlayField.Width - 60;
             tbEnterChat.Width = this.Width - gbPlayField.Width - 60;
 
-            // Создаем кнопки и добавляем их в GroupBox
+            //Создание кнопок-игровых клеток
             for (int x = 0; x < fieldSize.Width; x++)
             {
                 for (int y = 0; y < fieldSize.Height; y++)
                 {
                     Button button = new Button
                     {
-                        Size = new Size(20, 20), // Размер кнопки
-                        Location = new Point(10 + x * 20, 10 + y * 20), // Позиция кнопки
-                        Tag = new Point(x, y), // Сохраняем координаты кнопки в Tag
-                        BackColor = SystemColors.Control // Стандартный цвет кнопки
+                        Size = new Size(20, 20), 
+                        Location = new Point(10 + x * 20, 10 + y * 20), 
+                        Tag = new Point(x, y), 
+                        BackColor = SystemColors.Control 
                         //Image = Properties.Resources.imgNone
                     };
-                    button.Click += Cell_Click; // Обработчик клика по кнопке
-                    gbPlayField.Controls.Add(button); // Добавляем кнопку в GroupBox
+                    button.Click += Cell_Click; 
+                    gbPlayField.Controls.Add(button);
                 }
             }
         }
 
         private bool isFirstClick = true; // Флаг для первого клика
-        private Point firstClickCoordinates; // Координаты первой клетки
+        private Point firstClickCoordinates; // Координаты первого нажатия
         private async void Cell_Click(object sender, EventArgs e)
         {
             Button button = (Button)sender;
@@ -95,25 +92,21 @@ namespace Client
             if (button.BackColor != SystemColors.Control)
                 return;
 
-            if (isFirstClick)
+            if (isFirstClick) // Первый клик — открытие клетки
             {
-                // Первый клик — открытие клетки
+                
                 firstClickCoordinates = cellCoordinates;
                 isFirstClick = false;
 
-                // Временно помечаем клетку как открытую (для визуальной обратной связи)
                 button.BackColor = Color.Green;
                 //button.Image = Properties.Resources.imgFlag;
             }
-            else
+            else // Второй клик — установка мины
             {
-                // Второй клик — установка мины
+                
                 isFirstClick = true;
 
-                // Отправляем ход на сервер
                 await gameClient.SendMove(firstClickCoordinates.X, firstClickCoordinates.Y, cellCoordinates.X, cellCoordinates.Y);
-
-                // Помечаем клетку с миной (для визуальной обратной связи)
                 button.BackColor = Color.Red;
                 //button.Image = Properties.Resources.imgMine;
             }
@@ -125,7 +118,6 @@ namespace Client
             // Блокируем кнопки, если ход не текущего игрока
             UpdateButtonsState(gameClient.Player.Id == gameState.CurrentPlayerId);
 
-            // Обновляем интерфейс в соответствии с состоянием игры
             gameClient.FieldState = CellState.DeserializeField(gameState.StrField);
             for (int x = 0; x < gameClient.FieldState.GetLength(0); x++)
             {

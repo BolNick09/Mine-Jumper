@@ -15,10 +15,10 @@ namespace Client
 {
     public class GameClient
     {
-        private string serverIp; // IP-адрес сервера
-        private int port; // Порт сервера
+        private string serverIp;
+        private int port; 
 
-        public Player Player { get; private set; } // Информация о текущем игроке
+        public Player Player { get; private set; } // Информация о игроке
         public int CurrentTurnPlayerId { get; set; } // ID текущего игрока
 
         public CellState[,] FieldState { get; set; }
@@ -35,7 +35,6 @@ namespace Client
             this.port = port;
         }
 
-        // Подключение к серверу и регистрация игрока
         public async Task Connect(string playerName)
         {
             try
@@ -51,21 +50,17 @@ namespace Client
                     IsActive = true
                 };
 
-                // Отправляем сообщение о подключении
                 JoinMessage joinMessage = new JoinMessage { PlayerName = playerName };
                 await Player.Client.SendJson(new Message { Join = joinMessage });
 
-                // Получаем ответ от сервера
                 Message response = await Player.Client.ReceiveJson<Message>();
                 if (response?.Join != null)
                 {
                     Player.Id = response.Join.PlayerId;
                     MessageBox.Show($"Игрок {Player.Name} (ID: {Player.Id}) успешно зарегистрирован.");
 
-                    // Вызываем событие OnJoinResponse
                     OnJoinResponse?.Invoke(response.Join);
 
-                    // Запускаем прослушивание сообщений
                     _ = StartListening();
                 }
                 else
@@ -119,24 +114,17 @@ namespace Client
                 while (Player.Client.Connected)
                 {
                     Message? message = await Player.Client.ReceiveJson<Message>();
-                    if (message?.GameState?.IsGameOver == true)
-                    {
-                        // Уведомляем о завершении игры
+                    if (message?.GameState?.IsGameOver == true)                    
                         OnGameOver?.Invoke(message.GameState.WinnerId ?? 0);
-                    }
+                    
                     else if (message?.GameState != null)
                     {
-                        // Обновляем CurrentPlayerId
                         CurrentTurnPlayerId = message.GameState.CurrentPlayerId;
-
-                        // Уведомляем о новом состоянии игры
                         OnGameStateUpdated?.Invoke(message.GameState);
                     }
                     else if (message?.Chat != null)
                     {
                         string chatMessage = message.Chat.Text;
-
-                        // Вызываем событие для обновления чата
                         OnChatMessageReceived?.Invoke(chatMessage);
                     }
                     

@@ -9,10 +9,10 @@ namespace MineJumperClassLibrary
 {
     public class Player
     {
-        public int Id { get; set; } // Уникальный идентификатор игрока
-        public string Name { get; set; } // Имя игрока
-        public bool IsActive { get; set; } // Активен ли игрок (в игре или вышел)
-        public bool IsMyTurn { get; set; } // Флаг, указывающий, чей сейчас ход
-        public TcpClient Client { get; set; } // Сетевой клиент игрока
+        public int Id { get; set; } 
+        public string Name { get; set; } 
+        public bool IsActive { get; set; } 
+        public bool IsMyTurn { get; set; } 
+        public TcpClient Client { get; set; } 
     }
 }

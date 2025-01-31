@@ -19,7 +19,7 @@ namespace MineJumperClassLibrary
         [JsonPropertyName("isPlayerMine")]
         public bool IsPlayerMine { get; set; } // Есть ли мина игрока
 
-        // Метод для преобразования 2-мерного массива CellState в строку (JSON)
+        // Метод для преобразования 2-мерного массива CellState в JSON
         public static string SerializeField(CellState[,] field)
         {
             List<List<CellState>> list = new List<List<CellState>>();
@@ -33,11 +33,10 @@ namespace MineJumperClassLibrary
                 }
                 list.Add(row);
             }
-
             return JsonSerializer.Serialize(list);
         }
 
-        // Метод для преобразования строки (JSON) обратно в 2-мерный массив CellState
+        // Метод для преобразования JSON обратно в 2-мерный массив CellState
         public static CellState[,] DeserializeField(string json)
         {
             List<List<CellState>>? list = JsonSerializer.Deserialize<List<List<CellState>>>(json);

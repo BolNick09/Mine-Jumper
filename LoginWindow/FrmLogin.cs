@@ -30,14 +30,12 @@ namespace LoginWindow
             {
                 GameClient gameClient = new GameClient(serverIp, 2024);
 
-                // Подписываемся на событие OnJoinResponse
+
                 gameClient.OnJoinResponse += (joinResponse) =>
                 {
-                    // Открываем основную форму игры
+
                     FrmMain mainForm = new FrmMain(gameClient, playerName, joinResponse.FieldSize, this);
                     mainForm.Show();
-
-                    // Закрываем форму логина
                     this.Hide();
                 };
 
