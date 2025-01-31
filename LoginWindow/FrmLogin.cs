@@ -34,7 +34,7 @@ namespace LoginWindow
                 gameClient.OnJoinResponse += (joinResponse) =>
                 {
                     // Открываем основную форму игры
-                    FrmMain mainForm = new FrmMain(gameClient, playerName, joinResponse.FieldSize);
+                    FrmMain mainForm = new FrmMain(gameClient, playerName, joinResponse.FieldSize, this);
                     mainForm.Show();
 
                     // Закрываем форму логина

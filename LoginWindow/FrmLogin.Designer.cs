@@ -38,27 +38,25 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(10, 7);
+            label1.Location = new Point(11, 9);
             label1.Name = "label1";
-            label1.Size = new Size(119, 15);
+            label1.Size = new Size(152, 20);
             label1.TabIndex = 0;
             label1.Text = "Введите имя игрока:";
             // 
             // tbName
             // 
-            tbName.Location = new Point(149, 4);
-            tbName.Margin = new Padding(3, 2, 3, 2);
+            tbName.Location = new Point(170, 5);
             tbName.Name = "tbName";
-            tbName.Size = new Size(204, 23);
+            tbName.Size = new Size(233, 27);
             tbName.TabIndex = 1;
             // 
             // btnConnect
             // 
             btnConnect.Font = new Font("Segoe UI", 8F);
-            btnConnect.Location = new Point(358, 29);
-            btnConnect.Margin = new Padding(3, 2, 3, 2);
+            btnConnect.Location = new Point(409, 39);
             btnConnect.Name = "btnConnect";
-            btnConnect.Size = new Size(95, 20);
+            btnConnect.Size = new Size(116, 27);
             btnConnect.TabIndex = 2;
             btnConnect.Text = "Подключиться";
             btnConnect.UseVisualStyleBackColor = true;
@@ -67,33 +65,31 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(10, 32);
+            label2.Location = new Point(11, 43);
             label2.Name = "label2";
-            label2.Size = new Size(113, 15);
+            label2.Size = new Size(145, 20);
             label2.TabIndex = 3;
             label2.Text = "Введите IP сервера:";
             // 
             // tbIp
             // 
-            tbIp.Location = new Point(149, 29);
-            tbIp.Margin = new Padding(3, 2, 3, 2);
+            tbIp.Location = new Point(170, 39);
             tbIp.Name = "tbIp";
-            tbIp.Size = new Size(204, 23);
+            tbIp.Size = new Size(233, 27);
             tbIp.TabIndex = 4;
             tbIp.Text = "127.0.0.1";
             // 
             // FrmLogin
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(458, 56);
+            ClientSize = new Size(537, 75);
             Controls.Add(tbIp);
             Controls.Add(label2);
             Controls.Add(btnConnect);
             Controls.Add(tbName);
             Controls.Add(label1);
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
-            Margin = new Padding(3, 2, 3, 2);
             Name = "FrmLogin";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Логин";

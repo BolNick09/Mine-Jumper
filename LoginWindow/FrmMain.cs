@@ -8,7 +8,7 @@ using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using LoginWindow;
 using MineJumperClassLibrary;
 
 namespace Client
@@ -17,12 +17,14 @@ namespace Client
     {
         private GameClient gameClient;
         private string playerName;
-        public FrmMain(GameClient gameClient, string playerName, Size fieldSize)
+        private FrmLogin frmLogin;
+        public FrmMain(GameClient gameClient, string playerName, Size fieldSize, FrmLogin frmLogin)
         {
             InitializeComponent();
 
             this.gameClient = gameClient;
             this.playerName = playerName;
+            this.frmLogin = frmLogin;
 
             // Инициализируем игровое поле
             InitializeGameField(fieldSize);
@@ -174,7 +176,8 @@ namespace Client
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            this.Dispose();
+            frmLogin.Close();
+            this.Close();
         }
     }
 }
